@@ -104,8 +104,12 @@ export function TreeCanvas({ nodes, selectedUserId, onSelect, balances = {}, lat
       keys.add(`${cur.placementId}->${cur.id}`);
       cur = nodeMap.get(cur.placementId);
     }
-    return keys;
-  }, [nodes, selectedUserId]);
+    // Intersect with currently rendered edges to avoid dimming everything when the
+    // selected node's ancestor chain is collapsed (keys non-empty but matches nothing).
+    const renderedKeys = new Set(layout.edges.map((e) => `${e.fromId}->${e.toId}`));
+    const intersected = new Set(Array.from(keys).filter((k) => renderedKeys.has(k)));
+    return intersected.size > 0 ? intersected : undefined;
+  }, [nodes, selectedUserId, layout.edges]);
 
   // Inspector data for hovered node
   const inspectorData = useMemo((): InspectorData | null => {

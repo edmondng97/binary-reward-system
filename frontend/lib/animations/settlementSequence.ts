@@ -11,7 +11,7 @@ export function settlementSequence(root: HTMLElement, records: SettlementRecord[
     tl.fromTo(
       card,
       { boxShadow: '0 0 0px rgba(52,211,153,0)' },
-      { boxShadow: '0 0 22px rgba(52,211,153,0.8)', duration: 0.32, yoyo: true, repeat: 1 },
+      { boxShadow: '0 0 22px rgba(52,211,153,0.8)', duration: 0.32, yoyo: true, repeat: 1, clearProps: 'boxShadow' },
       i * 0.12,
     );
   });
