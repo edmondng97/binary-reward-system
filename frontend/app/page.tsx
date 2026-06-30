@@ -37,6 +37,8 @@ export default function Page() {
       if (d.lastEvent.type === 'order') flowUpUplinePath(stage.current, uplineEdgeKeys(d.lastEvent.nodeId));
       if (d.lastEvent.type === 'register') nodeEnter(stage.current, d.lastEvent.nodeId);
       if (d.lastEvent.type === 'settlement') {
+        // Flash all nodes with residual carry — a demo approximation of "nodes paired this run"
+        // (the enqueue endpoint does not return the per-run paired set).
         const paired = d.nodes.filter((n) => n.carryLeft > 0 || n.carryRight > 0).map((n) => n.id);
         settlementFlash(stage.current, paired);
       }
@@ -59,7 +61,7 @@ export default function Page() {
             <h3 className="text-sm font-semibold text-slate-200">Create Root</h3>
             <CreateRoot onCreate={d.createRoot} />
           </Card>
-          <RegisterPanel onDone={d.refresh} />
+          <RegisterPanel onSubmit={d.register} />
           <OrderPanel onSubmit={d.order} />
           <SettlementPanel onRun={d.settle} />
           <select className="w-full rounded-lg border border-white/10 bg-slate-950/60 px-2 py-1.5 text-sm"

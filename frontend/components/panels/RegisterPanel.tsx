@@ -1,16 +1,16 @@
 'use client';
 import { useState } from 'react';
-import { api } from '@/lib/api';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
+import type { RegisterInput } from '@/lib/useDashboard';
 
-export function RegisterPanel({ onDone }: { onDone: () => void | Promise<void> }) {
+export function RegisterPanel({ onSubmit }: { onSubmit: (input: RegisterInput) => Promise<void> }) {
   const [f, setF] = useState({ username: '', sponsorUsername: '', placementUsername: '', position: 'L' as 'L' | 'R' });
   const [err, setErr] = useState('');
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setErr('');
-    try { await api.register({ ...f, password: 'p' }); await onDone(); }
+    try { await onSubmit({ ...f, password: 'p' }); }
     catch (x) { setErr(x instanceof Error ? x.message : String(x)); }
   };
   return (
