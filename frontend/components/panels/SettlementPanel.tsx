@@ -14,7 +14,7 @@ export function SettlementPanel({ onRun }: { onRun: () => Promise<void> }) {
   };
   return (
     <Card className="p-4 space-y-2">
-      <h3 className="text-sm font-semibold text-slate-200">Settlement</h3>
+      <h3 className="text-sm font-semibold text-slate-200">Settle Cycle</h3>
       <Button onClick={run}>Run settlement now</Button>
       {msg && <p className={`text-xs ${isErr ? 'text-rose-400' : 'text-slate-400'}`}>{msg}</p>}
     </Card>

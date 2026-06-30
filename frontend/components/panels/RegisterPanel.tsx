@@ -17,7 +17,7 @@ export function RegisterPanel({ onDone }: { onDone: () => void | Promise<void> }
     <Card className="p-4">
       <form onSubmit={submit} className="space-y-2">
         <h3 className="text-sm font-semibold text-slate-200">Register</h3>
-        <Field label="Username" value={f.username} placeholder="username" onChange={(v) => setF({ ...f, username: v })} />
+        <Field label="Username" value={f.username} placeholder="new username" onChange={(v) => setF({ ...f, username: v })} />
         <Field label="Sponsor" value={f.sponsorUsername} placeholder="sponsor" onChange={(v) => setF({ ...f, sponsorUsername: v })} />
         <Field label="Placement" value={f.placementUsername} placeholder="placement" onChange={(v) => setF({ ...f, placementUsername: v })} />
         <label className="block space-y-1">
