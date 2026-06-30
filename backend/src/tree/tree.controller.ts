@@ -17,7 +17,7 @@ export class TreeController {
   async list() {
     const nodes = await this.tree.allNodes();
     return Promise.all(nodes.map(async (n) => ({
-      id: String(n._id), username: n.username,
+      id: String(n._id), userId: n.userId, username: n.username,
       placementId: n.placementId, position: n.position,
       leftChildId: n.leftChildId, rightChildId: n.rightChildId,
       carryLeft: n.carryLeft, carryRight: n.carryRight,

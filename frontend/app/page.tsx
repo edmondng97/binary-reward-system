@@ -6,15 +6,19 @@ import { TreeView } from '@/components/TreeView';
 import { RegisterForm } from '@/components/RegisterForm';
 import { OrderForm } from '@/components/OrderForm';
 import { SettlementPanel } from '@/components/SettlementPanel';
+import { WalletLedger } from '@/components/WalletLedger';
 
 export default function Page() {
   const [nodes, setNodes] = useState<any[]>([]);
   const [rootName, setRootName] = useState('root');
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
   const refresh = async () => setNodes(await api.tree());
   useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     refresh();
   }, []);
+
+  const selectedNode = nodes.find((n) => n.userId === selectedUserId);
 
   return (
     <main className="p-6 grid grid-cols-3 gap-6">
@@ -31,6 +35,22 @@ export default function Page() {
         <RegisterForm onDone={refresh} />
         <OrderForm onDone={refresh} />
         <SettlementPanel onDone={refresh} />
+        <div className="space-y-2">
+          <h3 className="font-semibold">Wallet Balance</h3>
+          <select
+            className="border p-1 w-full text-sm"
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+          >
+            <option value="">— select a member —</option>
+            {nodes.map((n) => (
+              <option key={n.userId} value={n.userId}>{n.username}</option>
+            ))}
+          </select>
+          {selectedNode && (
+            <WalletLedger key={selectedUserId} userId={selectedUserId} username={selectedNode.username} />
+          )}
+        </div>
       </aside>
     </main>
   );
