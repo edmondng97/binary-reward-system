@@ -25,3 +25,18 @@ body {
     text-wrap: balance;
   }
 }
+
+:root {
+  --bg-0: #020617;     /* slate-950 */
+  --bg-1: #0f172a;     /* slate-900 */
+  --line: rgba(255,255,255,0.10);
+  --accent: #34d399;   /* emerald-400 */
+  --accent-2: #22d3ee; /* cyan-400 */
+  --warn: #f59e0b;     /* amber-500 */
+  --err: #fb7185;      /* rose-400 */
+}
+body {
+  background: radial-gradient(1200px 800px at 30% -10%, #0b1224, var(--bg-0));
+  color: #e2e8f0;
+}
+.mono-num { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
