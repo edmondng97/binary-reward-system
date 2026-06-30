@@ -1,7 +1,7 @@
 import type { TreeNodeDTO } from './types';
 
 export type PositionedNode = TreeNodeDTO & { x: number; y: number };
-export interface Edge { fromId: string; toId: string; d: string; }
+export interface Edge { fromId: string; toId: string; d: string; position: 'L' | 'R'; weight: number; }
 export interface Layout { positioned: PositionedNode[]; edges: Edge[]; width: number; height: number; }
 
 interface Opts { nodeW?: number; nodeH?: number; gapX?: number; gapY?: number; }
@@ -45,6 +45,11 @@ export function layoutTree(nodes: TreeNodeDTO[], opts: Opts = {}): Layout {
     .filter(n => pos.has(n.id))
     .map(n => ({ ...n, x: pos.get(n.id)!.x, y: pos.get(n.id)!.y }));
 
+  const childCarry = (id: string) => {
+    const c = byId.get(id); return c ? c.carryLeft + c.carryRight : 0;
+  };
+  const maxChild = Math.max(1, ...positioned.map((p) => childCarry(p.id)));
+
   const edges: Edge[] = [];
   for (const n of positioned) {
     for (const childId of [n.leftChildId, n.rightChildId]) {
@@ -53,7 +58,12 @@ export function layoutTree(nodes: TreeNodeDTO[], opts: Opts = {}): Layout {
         const x1 = n.x + nodeW / 2, y1 = n.y + nodeH;
         const x2 = c.x + nodeW / 2, y2 = c.y;
         const my = (y1 + y2) / 2;
-        edges.push({ fromId: n.id, toId: childId, d: `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}` });
+        edges.push({
+          fromId: n.id, toId: childId,
+          d: `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`,
+          position: childId === n.leftChildId ? 'L' : 'R',
+          weight: Math.min(1, childCarry(childId) / maxChild),
+        });
       }
     }
   }

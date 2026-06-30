@@ -32,3 +32,23 @@ describe('layoutTree', () => {
     expect(edges[0].d.startsWith('M')).toBe(true);
   });
 });
+
+describe('layoutTree edge encoding', () => {
+  it('tags each edge with L/R position and a 0..1 weight from the child leg volume', () => {
+    const nodes = [
+      { id: 'root', username: 'root', placementId: null, position: null,
+        leftChildId: 'a', rightChildId: 'b', carryLeft: 0, carryRight: 0 },
+      { id: 'a', username: 'a', placementId: 'root', position: 'L',
+        leftChildId: null, rightChildId: null, carryLeft: 100, carryRight: 0 },
+      { id: 'b', username: 'b', placementId: 'root', position: 'R',
+        leftChildId: null, rightChildId: null, carryLeft: 50, carryRight: 0 },
+    ] as any;
+    const { edges } = layoutTree(nodes);
+    const byTo = Object.fromEntries(edges.map((e) => [e.toId, e]));
+    expect(byTo.a.position).toBe('L');
+    expect(byTo.b.position).toBe('R');
+    // weight = child's total carry over max child carry (100) → a:1, b:0.5
+    expect(byTo.a.weight).toBeCloseTo(1);
+    expect(byTo.b.weight).toBeCloseTo(0.5);
+  });
+});
