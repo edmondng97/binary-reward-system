@@ -100,7 +100,7 @@ export function TreeCanvas({ nodes, selectedUserId, onSelect, balances = {}, lat
     const keys = new Set<string>();
     let cur: TreeNodeDTO | undefined = selected;
     while (cur?.placementId) {
-      keys.add(`${cur.placementId}-${cur.id}`);
+      keys.add(`${cur.placementId}->${cur.id}`);
       cur = nodeMap.get(cur.placementId);
     }
     return keys;
