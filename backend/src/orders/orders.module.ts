@@ -1,0 +1,13 @@
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Order, OrderSchema } from './order.schema';
+import { OrdersService } from './orders.service';
+import { OrdersController } from './orders.controller';
+import { TreeModule } from '../tree/tree.module';
+
+@Module({
+  imports: [MongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]), TreeModule],
+  providers: [OrdersService],
+  controllers: [OrdersController],
+})
+export class OrdersModule {}
