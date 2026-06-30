@@ -14,7 +14,7 @@ export function pairNode(left: number, right: number, rate: number, cap: number)
   const pairedAmount = round4(Math.min(left, right));
   let bonus = round4(pairedAmount * rate);
   let cappedAmount = 0;
-  if (bonus > cap) { cappedAmount = round4(bonus - cap); bonus = cap; }
+  if (bonus > cap) { cappedAmount = round4(bonus - cap); bonus = round4(cap); }
   return {
     pairedAmount, bonus, cappedAmount,
     carryLeftAfter: round4(left - pairedAmount),
@@ -63,7 +63,14 @@ export class SettlementService {
 
         node.carryLeft = r.carryLeftAfter;
         node.carryRight = r.carryRightAfter;
+        // DEMO SIMPLIFICATION (single-node manual settlement):
+        // Crash window (a): if the process dies after node.save() but before
+        // clearLegs(), the next batch will re-add the same live Redis legs to
+        // the already-persisted carry, causing double-counting.
         await node.save();
+        // Crash window (b): an order arriving between the readLegs() call above
+        // and clearLegs() here is NOT protected by the settlement lock; its
+        // volume will be silently dropped when the legs are cleared.
         await this.redis.clearLegs(String(node._id));
       }
       batch.status = 'completed';

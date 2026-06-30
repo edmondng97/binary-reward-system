@@ -6,8 +6,12 @@ export function SettlementPanel({ onDone }: { onDone: () => void }) {
   const [msg, setMsg] = useState('');
   const run = async () => {
     setMsg('enqueued...');
-    await api.settle();
-    setTimeout(async () => { await onDone(); setMsg('settlement done'); }, 1500);
+    try {
+      await api.settle();
+      setTimeout(async () => { await onDone(); setMsg('settlement done'); }, 1500);
+    } catch (e: unknown) {
+      setMsg(e instanceof Error ? e.message : 'settlement failed');
+    }
   };
   return (
     <div className="space-y-2">
