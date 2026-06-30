@@ -41,12 +41,12 @@ export function StatBar({ nodes, balances }:
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <div className="panel px-4 py-3" data-stat="total-distributed">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-zinc-400 uppercase tracking-wider">Total Distributed</span>
-          <div ref={goldRef} className="mono-num text-2xl font-bold text-[#f5b233]">
+        <div className="space-y-1">
+          <div className="eyebrow">Total Distributed</div>
+          <div ref={goldRef} className="mono-num text-3xl font-semibold text-[#f5b233]">
             {money(stats.totalDistributed)}
           </div>
-          <span className="text-xs text-zinc-500">paid to wallets</span>
+          <div className="text-[11px] text-[#586079]">paid to wallets</div>
         </div>
       </div>
       <div className="panel px-4 py-3">
