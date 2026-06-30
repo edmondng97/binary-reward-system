@@ -53,17 +53,19 @@ Three scenarios are covered: happy path (create root → register alice/bob → 
 ### Stack-up commands
 
 ```bash
-# Start mongo + redis (or use existing containers)
-docker run -d -p 27017:27017 --name demo-mongo mongo:7
-docker run -d -p 6379:6379 --name demo-redis redis:7
+# Start mongo + redis (reuse existing containers if already created)
+docker start demo-mongo demo-redis 2>/dev/null || (
+  docker run -d -p 27017:27017 --name demo-mongo mongo:7
+  docker run -d -p 6379:6379 --name demo-redis redis:7
+)
 
 # Drop the DB for a fresh run (required — test 2 depends on happy-path state)
 mongosh binary_demo --eval "db.dropDatabase()"
 redis-cli flushall
 
-# Start backend (:3100) and frontend (:3000)
-cd backend && npm run start:dev &
-cd frontend && npm run dev &
+# Start backend (:3100) and frontend (:3000) in isolated subshells
+( cd backend && npm run start:dev & )
+( cd frontend && npm run dev & )
 ```
 
 ### Run tests

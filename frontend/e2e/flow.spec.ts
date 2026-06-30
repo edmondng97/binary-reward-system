@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-// Requires the full stack running: docker mongo+redis, backend :3001, frontend :3000.
+// Requires the full stack running: mongo+redis, backend :3100, frontend :3000.
 // Each run assumes a fresh DB (drop binary_demo before running) to keep usernames unique.
 
 test('happy path: register, order, settle, wallet credited', async ({ page }) => {
