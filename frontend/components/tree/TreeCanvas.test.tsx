@@ -28,4 +28,19 @@ describe('TreeCanvas', () => {
     fireEvent.click(container.querySelector('[data-node-id="a"]')!);
     expect(onSelect).toHaveBeenCalledWith('u-a');
   });
+
+  it('collapsing a parent hides its descendants', () => {
+    const treeNodes = [
+      { id: 'root', username: 'root', userId: 'ur', placementId: null, position: null,
+        leftChildId: 'a', rightChildId: null, carryLeft: 0, carryRight: 0 },
+      { id: 'a', username: 'a', userId: 'ua', placementId: 'root', position: 'L',
+        leftChildId: 'b', rightChildId: null, carryLeft: 0, carryRight: 0 },
+      { id: 'b', username: 'b', userId: 'ub', placementId: 'a', position: 'L',
+        leftChildId: null, rightChildId: null, carryLeft: 0, carryRight: 0 },
+    ] satisfies TreeNodeDTO[];
+    const { container } = render(<TreeCanvas nodes={treeNodes} selectedUserId={null} onSelect={() => {}} />);
+    expect(container.querySelectorAll('[data-node-id]')).toHaveLength(3);
+    fireEvent.click(container.querySelector('[data-node-id="a"] [data-collapse]')!);
+    expect(container.querySelectorAll('[data-node-id]')).toHaveLength(2); // b hidden
+  });
 });
