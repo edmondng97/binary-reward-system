@@ -1,4 +1,4 @@
-const BASE = process.env.NEXT_PUBLIC_API ?? 'http://localhost:3001';
+const BASE = process.env.NEXT_PUBLIC_API ?? 'http://localhost:3100';
 async function req(path: string, opts?: RequestInit) {
   const res = await fetch(BASE + path, {
     headers: { 'Content-Type': 'application/json' }, ...opts,
