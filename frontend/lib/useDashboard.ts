@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from './api';
-import type { TreeNodeDTO } from './types';
+import type { TreeNodeDTO, LatestSettlement } from './types';
 
 export type DashboardEvent =
   | { type: 'order'; nodeId: string }
@@ -19,6 +19,7 @@ export function useDashboard() {
   const [balances, setBalances] = useState<Record<string, number>>({});
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [lastEvent, setLastEvent] = useState<DashboardEvent>(null);
+  const [latestSettlement, setLatestSettlement] = useState<LatestSettlement | null>(null);
 
   // Wallet balances power the gold money figures (header total + node chips).
   // Best-effort: a missing/failing /users call just leaves a node's chip at 0,
@@ -43,11 +44,19 @@ export function useDashboard() {
     }
   }, []);
 
+  const loadLatest = useCallback(async () => {
+    try {
+      if (typeof api.latestSettlement !== 'function') return;
+      setLatestSettlement(await api.latestSettlement());
+    } catch { /* leave as-is */ }
+  }, []);
+
   const refresh = useCallback(async () => {
     const next = await api.tree();
     setNodes(next);
     void loadBalances(next);
-  }, [loadBalances]);
+    void loadLatest();
+  }, [loadBalances, loadLatest]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -79,6 +88,6 @@ export function useDashboard() {
 
   return {
     nodes, balances, selectedUserId, setSelectedUserId, lastEvent,
-    refresh, createRoot, register, order, settle,
+    refresh, createRoot, register, order, settle, latestSettlement,
   };
 }

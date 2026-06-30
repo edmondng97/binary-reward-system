@@ -14,3 +14,11 @@ export interface WalletTxnDTO {
   _id: string; userId: string; type: string; amount: number;
   refId: string | null; balanceAfter: number; createdAt?: string;
 }
+export interface SettlementRecord {
+  nodeId: string; pairedAmount: number; bonus: number;
+  cappedAmount: number; carryLeftAfter: number; carryRightAfter: number;
+}
+export interface LatestSettlement {
+  batchId: string; triggeredBy: string; totalBonus: number;
+  endedAt: string | null; records: SettlementRecord[];
+}

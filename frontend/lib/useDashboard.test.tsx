@@ -10,6 +10,7 @@ vi.mock('./api', () => ({
     register: vi.fn().mockResolvedValue({}),
     settle: vi.fn().mockResolvedValue({ enqueued: true }),
     createRoot: vi.fn().mockResolvedValue({}),
+    latestSettlement: vi.fn().mockResolvedValue({ batchId: 'b1', triggeredBy: 'manual', totalBonus: 350, endedAt: null, records: [] }),
   },
 }));
 import { api } from './api';
@@ -22,6 +23,11 @@ describe('useDashboard', () => {
     const { result } = renderHook(() => useDashboard());
     await waitFor(() => expect(result.current.nodes.length).toBe(1));
     expect(api.tree).toHaveBeenCalled();
+  });
+
+  it('loads the latest settlement on mount', async () => {
+    const { result } = renderHook(() => useDashboard());
+    await waitFor(() => expect(result.current.latestSettlement?.batchId).toBe('b1'));
   });
 
   it('order() calls api.order, refreshes, and sets an order event', async () => {
