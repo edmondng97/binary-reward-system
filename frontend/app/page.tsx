@@ -3,13 +3,10 @@ import { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import { gsap } from 'gsap';
 import { useDashboard } from '@/lib/useDashboard';
+import { StatBar } from '@/components/StatBar';
 import { TreeCanvas } from '@/components/tree/TreeCanvas';
-import { RegisterPanel } from '@/components/panels/RegisterPanel';
-import { OrderPanel } from '@/components/panels/OrderPanel';
-import { SettlementPanel } from '@/components/panels/SettlementPanel';
+import { ControlDeck } from '@/components/ControlDeck';
 import { WalletPanel } from '@/components/panels/WalletPanel';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 import { flowUpUplinePath } from '@/lib/animations/flowUp';
 import { settlementFlash } from '@/lib/animations/settlementFx';
 import { nodeEnter } from '@/lib/animations/nodeEnter';
@@ -18,7 +15,7 @@ export default function Page() {
   const d = useDashboard();
   const stage = useRef<HTMLDivElement>(null);
 
-  // Build the ordered upline edge keys ("parent->child") from a node up to root.
+  // Ordered upline edge keys ("parent->child") from a node up to root.
   const uplineEdgeKeys = (nodeId: string): string[] => {
     const byId = new Map(d.nodes.map((n) => [n.id, n]));
     const keys: string[] = [];
@@ -27,7 +24,7 @@ export default function Page() {
       keys.push(`${cur.placementId}->${cur.id}`);
       cur = byId.get(cur.placementId) ?? undefined;
     }
-    return keys; // child→root order = the order the dot should travel
+    return keys;
   };
 
   useGSAP(() => {
@@ -37,54 +34,72 @@ export default function Page() {
       if (d.lastEvent.type === 'order') flowUpUplinePath(stage.current, uplineEdgeKeys(d.lastEvent.nodeId));
       if (d.lastEvent.type === 'register') nodeEnter(stage.current, d.lastEvent.nodeId);
       if (d.lastEvent.type === 'settlement') {
-        // Flash all nodes with residual carry — a demo approximation of "nodes paired this run"
-        // (the enqueue endpoint does not return the per-run paired set).
+        // Flash all nodes with residual carry — a demo approximation of "nodes paired this run".
         const paired = d.nodes.filter((n) => n.carryLeft > 0 || n.carryRight > 0).map((n) => n.id);
         settlementFlash(stage.current, paired);
       }
     });
   }, { dependencies: [d.lastEvent], scope: stage });
 
-  const usernames = d.nodes.map((n) => ({ username: n.username, userId: n.userId }));
+  const hasRoot = d.nodes.some((n) => !n.placementId);
+  const members = d.nodes.map((n) => ({ username: n.username, userId: n.userId }));
 
   return (
-    <main className="min-h-screen p-6">
-      <header className="mb-6 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-slate-100">Binary Reward Dashboard</h1>
+    <main className="mx-auto min-h-screen max-w-[1440px] px-6 py-6">
+      <header className="mb-5">
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-xl font-semibold tracking-tight text-[#e8ecf5]">
+            Binary Reward <span className="text-[#586079]">·</span> Settlement Engine
+          </h1>
+          <span className="eyebrow">binary reward network</span>
+        </div>
+        <p className="mt-1 text-sm text-[#8a95ad]">
+          Volume climbs the legs, the smaller side pairs, settlement pays the wallets.
+        </p>
       </header>
-      <div className="grid grid-cols-3 gap-6">
-        <section ref={stage} className="col-span-2 overflow-auto rounded-xl border border-white/10 bg-slate-950/40">
-          <TreeCanvas nodes={d.nodes} selectedUserId={d.selectedUserId} onSelect={(uid) => d.setSelectedUserId(uid ?? null)} />
+
+      <div className="mb-5">
+        <StatBar nodes={d.nodes} balances={d.balances} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <section
+          ref={stage}
+          className="grid-field panel relative col-span-1 min-h-[560px] overflow-auto lg:col-span-8"
+        >
+          <div className="eyebrow absolute left-4 top-4 z-10">Network</div>
+          <TreeCanvas
+            nodes={d.nodes}
+            balances={d.balances}
+            selectedUserId={d.selectedUserId}
+            onSelect={(uid) => d.setSelectedUserId(uid ?? null)}
+          />
         </section>
-        <aside className="space-y-4">
-          <Card className="p-4 space-y-2">
-            <h3 className="text-sm font-semibold text-slate-200">Create Root</h3>
-            <CreateRoot onCreate={d.createRoot} />
-          </Card>
-          <RegisterPanel onSubmit={d.register} />
-          <OrderPanel onSubmit={d.order} />
-          <SettlementPanel onRun={d.settle} />
-          <select className="w-full rounded-lg border border-white/10 bg-slate-950/60 px-2 py-1.5 text-sm"
-            value={d.selectedUserId ?? ''} onChange={(e) => d.setSelectedUserId(e.target.value || null)}>
-            <option value="">— select member —</option>
-            {usernames.map((u) => <option key={u.userId} value={u.userId}>@{u.username}</option>)}
-          </select>
+
+        <aside className="col-span-1 space-y-5 lg:col-span-4">
+          <ControlDeck
+            hasRoot={hasRoot}
+            onCreateRoot={d.createRoot}
+            onRegister={d.register}
+            onOrder={d.order}
+            onSettle={d.settle}
+          />
+          <div className="panel p-3">
+            <label className="eyebrow mb-2 block px-1">Inspect member</label>
+            <select
+              className="w-full rounded-lg border border-[var(--line)] bg-[#080b16] px-3 py-2 text-sm text-[#e8ecf5] outline-none focus:border-[#38e1ff]/60"
+              value={d.selectedUserId ?? ''}
+              onChange={(e) => d.setSelectedUserId(e.target.value || null)}
+            >
+              <option value="">— select member —</option>
+              {members.map((u) => (
+                <option key={u.userId} value={u.userId}>@{u.username}</option>
+              ))}
+            </select>
+          </div>
           <WalletPanel userId={d.selectedUserId} />
         </aside>
       </div>
     </main>
-  );
-}
-
-function CreateRoot({ onCreate }: { onCreate: (username: string) => Promise<void> }) {
-  return (
-    <form onSubmit={async (e) => { e.preventDefault();
-      const input = (e.currentTarget.elements.namedItem('root') as HTMLInputElement); await onCreate(input.value); }}>
-      <div className="flex gap-2">
-        <input name="root" defaultValue="root" placeholder="root username"
-          className="flex-1 rounded-lg border border-white/10 bg-slate-950/60 px-2 py-1.5 text-sm" />
-        <Button type="submit">Create</Button>
-      </div>
-    </form>
   );
 }

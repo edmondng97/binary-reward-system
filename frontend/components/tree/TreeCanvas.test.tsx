@@ -13,7 +13,7 @@ const nodes: TreeNodeDTO[] = [
 describe('TreeCanvas', () => {
   it('renders empty state when there is no root', () => {
     render(<TreeCanvas nodes={[]} selectedUserId={null} onSelect={() => {}} />);
-    expect(screen.getByText(/no tree/i)).toBeInTheDocument();
+    expect(screen.getByText(/no network/i)).toBeInTheDocument();
   });
 
   it('renders a card per node and an edge per parent-child link', () => {

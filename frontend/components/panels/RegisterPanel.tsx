@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import type { RegisterInput } from '@/lib/useDashboard';
@@ -14,22 +13,19 @@ export function RegisterPanel({ onSubmit }: { onSubmit: (input: RegisterInput) =
     catch (x) { setErr(x instanceof Error ? x.message : String(x)); }
   };
   return (
-    <Card className="p-4">
-      <form onSubmit={submit} className="space-y-2">
-        <h3 className="text-sm font-semibold text-slate-200">Register</h3>
-        <Field label="Username" value={f.username} placeholder="new username" onChange={(v) => setF({ ...f, username: v })} />
-        <Field label="Sponsor" value={f.sponsorUsername} placeholder="sponsor" onChange={(v) => setF({ ...f, sponsorUsername: v })} />
-        <Field label="Placement" value={f.placementUsername} placeholder="placement" onChange={(v) => setF({ ...f, placementUsername: v })} />
-        <label className="block space-y-1">
-          <span className="text-xs uppercase tracking-wide text-slate-400">Position</span>
-          <select value={f.position} onChange={(e) => setF({ ...f, position: e.target.value as 'L' | 'R' })}
-            className="w-full rounded-lg border border-white/10 bg-slate-950/60 px-2 py-1.5 text-sm">
-            <option value="L">L</option><option value="R">R</option>
-          </select>
-        </label>
-        <Button type="submit">Register</Button>
-        {err && <p className="text-xs text-rose-400">{err}</p>}
-      </form>
-    </Card>
+    <form onSubmit={submit} className="space-y-3">
+      <Field label="Username" value={f.username} placeholder="new username" onChange={(v) => setF({ ...f, username: v })} />
+      <Field label="Sponsor" value={f.sponsorUsername} placeholder="sponsor" onChange={(v) => setF({ ...f, sponsorUsername: v })} />
+      <Field label="Placement" value={f.placementUsername} placeholder="placement" onChange={(v) => setF({ ...f, placementUsername: v })} />
+      <label className="block space-y-1.5">
+        <span className="eyebrow">Position</span>
+        <select value={f.position} onChange={(e) => setF({ ...f, position: e.target.value as 'L' | 'R' })}
+          className="w-full rounded-lg border border-[var(--line)] bg-[#080b16] px-3 py-2 text-sm text-[#e8ecf5] outline-none focus:border-[#38e1ff]/60">
+          <option value="L">L — left leg</option><option value="R">R — right leg</option>
+        </select>
+      </label>
+      <Button type="submit" className="w-full">Register member</Button>
+      {err && <p className="text-xs text-[#fb7185]">{err}</p>}
+    </form>
   );
 }

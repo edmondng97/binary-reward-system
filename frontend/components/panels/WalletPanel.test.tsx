@@ -21,7 +21,7 @@ describe('WalletPanel', () => {
 
   it('renders balance and ledger for a selected user', async () => {
     render(<WalletPanel userId="u1" />);
-    await waitFor(() => expect(screen.getByText('$350.0000')).toBeInTheDocument());
-    expect(screen.getByText(/BONUS_IN/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('$350.00')).toBeInTheDocument());
+    expect(screen.getByText(/bonus/i)).toBeInTheDocument();
   });
 });

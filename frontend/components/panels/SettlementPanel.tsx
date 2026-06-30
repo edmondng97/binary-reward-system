@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 
 export function SettlementPanel({ onRun }: { onRun: () => Promise<void> }) {
@@ -13,10 +12,12 @@ export function SettlementPanel({ onRun }: { onRun: () => Promise<void> }) {
     catch (x) { setIsErr(true); setMsg(x instanceof Error ? x.message : String(x)); }
   };
   return (
-    <Card className="p-4 space-y-2">
-      <h3 className="text-sm font-semibold text-slate-200">Settle Cycle</h3>
-      <Button onClick={run}>Run settlement now</Button>
-      {msg && <p className={`text-xs ${isErr ? 'text-rose-400' : 'text-slate-400'}`}>{msg}</p>}
-    </Card>
+    <div className="space-y-3">
+      <p className="text-xs text-[#8a95ad]">
+        Pair the smaller leg of every member at 10%, capped at $2,000/day. The remainder carries to the next cycle; bonuses post to wallets.
+      </p>
+      <Button variant="gold" onClick={run} className="w-full">Run settlement now</Button>
+      {msg && <p className={`text-xs ${isErr ? 'text-[#fb7185]' : 'text-[#586079]'}`}>{msg}</p>}
+    </div>
   );
 }
