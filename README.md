@@ -46,6 +46,36 @@ Open `http://localhost:3000` to use the dashboard.
 - Root user `walletBalance`: **350**
 - Root node `carryLeft`: **1500**
 
+## Frontend e2e (Playwright)
+
+Three scenarios are covered: happy path (create root → register alice/bob → order → settle → verify root wallet $350), occupied-leg error, and non-positive-order validation.
+
+### Stack-up commands
+
+```bash
+# Start mongo + redis (or use existing containers)
+docker run -d -p 27017:27017 --name demo-mongo mongo:7
+docker run -d -p 6379:6379 --name demo-redis redis:7
+
+# Drop the DB for a fresh run (required — test 2 depends on happy-path state)
+mongosh binary_demo --eval "db.dropDatabase()"
+redis-cli flushall
+
+# Start backend (:3100) and frontend (:3000)
+cd backend && npm run start:dev &
+cd frontend && npm run dev &
+```
+
+### Run tests
+
+```bash
+cd frontend && npm run e2e
+```
+
+Expected output: `3 passed`. The occupied-leg and non-positive-order tests depend on happy-path having run first (alice registered at root-L); Playwright runs tests in file order by default, so this is satisfied automatically.
+
+> **Note:** each run requires a fresh database (drop `binary_demo` before running) to keep usernames unique across runs.
+
 ## Deliberate Demo Simplifications
 
 These trade-offs were made consciously to keep the demo concise:
