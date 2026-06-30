@@ -23,7 +23,7 @@ export function WalletLedger({ userId, username }: Props) {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API ?? 'http://localhost:3001'}/users/${userId}`)
+      fetch(`${process.env.NEXT_PUBLIC_API ?? 'http://localhost:3100'}/users/${userId}`)
         .then((r) => r.json()),
       api.ledger(userId),
     ])
