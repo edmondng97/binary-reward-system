@@ -1,4 +1,45 @@
-import { pairNode } from './settlement.service';
+import { pairNode, SettlementService } from './settlement.service';
+
+function fakeModel(docs: any[]) {
+  const M: any = {};
+  M.find = (q: any = {}) => ({
+    sort: () => ({ limit: () => ({ lean: () => ({ exec: () => Promise.resolve(
+      docs.filter((d) => !q.status || d.status === q.status).slice(0, 1)) }) }) }),
+    lean: () => ({ exec: () => Promise.resolve(docs) }),
+  });
+  return M;
+}
+
+describe('SettlementService.latest', () => {
+  it('returns the most recent completed batch with its records', async () => {
+    const batchModel = fakeModel([
+      { _id: 'b2', triggeredBy: 'manual', status: 'completed', totalBonus: 350, endedAt: new Date(2) },
+    ]);
+    const recordModel: any = {
+      find: (q: any) => ({ lean: () => ({ exec: () => Promise.resolve(
+        q.batchId === 'b2'
+          ? [{ nodeId: 'n1', pairedAmount: 3500, bonus: 350, cappedAmount: 0, carryLeftAfter: 1500, carryRightAfter: 0 }]
+          : []) }) }),
+    };
+    const svc = new SettlementService(
+      {} as any, {} as any, {} as any, batchModel, recordModel, {} as any,
+    );
+    const res = await svc.latest();
+    expect(res.batchId).toBe('b2');
+    expect(res.totalBonus).toBe(350);
+    expect(res.records).toHaveLength(1);
+    expect(res.records[0]).toMatchObject({ nodeId: 'n1', bonus: 350, carryLeftAfter: 1500 });
+  });
+
+  it('returns an empty result when no batch exists', async () => {
+    const svc = new SettlementService(
+      {} as any, {} as any, {} as any, fakeModel([]), { find: () => ({ lean: () => ({ exec: () => Promise.resolve([]) }) }) } as any, {} as any,
+    );
+    const res = await svc.latest();
+    expect(res).toEqual({ batchId: '', triggeredBy: 'manual', totalBonus: 0, endedAt: null, records: [] });
+  });
+});
+
 
 describe('pairNode', () => {
   it('pairs smaller leg and carries the remainder (no cap hit)', () => {

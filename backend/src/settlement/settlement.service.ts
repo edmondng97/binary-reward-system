@@ -10,6 +10,15 @@ import { PairingRecord } from './pairing-record.schema';
 import { PAIRING_RATE, DAILY_CAP } from '../config/settlement.config';
 import { round4 } from '../common/round';
 
+export interface SettlementRecord {
+  nodeId: string; pairedAmount: number; bonus: number;
+  cappedAmount: number; carryLeftAfter: number; carryRightAfter: number;
+}
+export interface LatestSettlement {
+  batchId: string; triggeredBy: string; totalBonus: number;
+  endedAt: Date | null; records: SettlementRecord[];
+}
+
 export function pairNode(left: number, right: number, rate: number, cap: number) {
   const pairedAmount = round4(Math.min(left, right));
   let bonus = round4(pairedAmount * rate);
@@ -34,6 +43,27 @@ export class SettlementService {
     @InjectModel(PairingRecord.name) private readonly recordModel: Model<PairingRecord>,
     @InjectModel(TreeNode.name) private readonly nodeModel: Model<TreeNode>,
   ) {}
+
+  async latest(): Promise<LatestSettlement> {
+    const [batch] = await this.batchModel
+      .find({ status: 'completed' })
+      .sort({ endedAt: -1, createdAt: -1 })
+      .limit(1)
+      .lean()
+      .exec();
+    if (!batch) {
+      return { batchId: '', triggeredBy: 'manual', totalBonus: 0, endedAt: null, records: [] };
+    }
+    const raw = await this.recordModel.find({ batchId: String(batch._id) }).lean().exec();
+    const records: SettlementRecord[] = raw.map((r: any) => ({
+      nodeId: r.nodeId, pairedAmount: r.pairedAmount, bonus: r.bonus,
+      cappedAmount: r.cappedAmount, carryLeftAfter: r.carryLeftAfter, carryRightAfter: r.carryRightAfter,
+    }));
+    return {
+      batchId: String(batch._id), triggeredBy: batch.triggeredBy,
+      totalBonus: batch.totalBonus, endedAt: batch.endedAt ?? null, records,
+    };
+  }
 
   async run(triggeredBy: 'cron' | 'manual'): Promise<{ batchId: string; totalBonus: number; skipped?: boolean }> {
     const locked = await this.redis.acquireSettlementLock(LOCK_TTL_MS);
