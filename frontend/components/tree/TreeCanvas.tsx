@@ -1,11 +1,12 @@
 'use client';
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { TreeNodeDTO, LatestSettlement } from '@/lib/types';
 import { layoutTree } from '@/lib/useTreeLayout';
 import { TreeEdges } from './TreeEdges';
 import { TreeNodeCard, NODE_W, NODE_H } from './TreeNodeCard';
 import { NodeInspector } from './NodeInspector';
 import type { InspectorData } from './NodeInspector';
+import { ZoomControls } from './ZoomControls';
 
 export function TreeCanvas({ nodes, selectedUserId, onSelect, balances = {}, latestSettlement }:
   {
@@ -128,7 +129,7 @@ export function TreeCanvas({ nodes, selectedUserId, onSelect, balances = {}, lat
 
   // Fit the whole network inside the canvas so no branch is ever clipped.
   const frame = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
+  const [fitScale, setFitScale] = useState(1);
   useLayoutEffect(() => {
     const el = frame.current;
     if (!el || layout.width === 0) return;
@@ -136,7 +137,7 @@ export function TreeCanvas({ nodes, selectedUserId, onSelect, balances = {}, lat
       const pad = 48;
       const sx = (el.clientWidth - pad) / layout.width;
       const sy = (el.clientHeight - pad) / layout.height;
-      setScale(Math.min(1, sx, sy));
+      setFitScale(Math.min(1, sx, sy));
     };
     fit();
     if (typeof ResizeObserver === 'undefined') return; // jsdom / SSR safety
@@ -144,6 +145,70 @@ export function TreeCanvas({ nodes, selectedUserId, onSelect, balances = {}, lat
     ro.observe(el);
     return () => ro.disconnect();
   }, [layout.width, layout.height]);
+
+  // User-controlled zoom/pan layered on top of fit scale
+  const ZOOM_STEP = 0.15;
+  const ZOOM_MIN = 0.2;
+  const ZOOM_MAX = 2.5;
+  const [userScale, setUserScale] = useState(1);
+  const [translate, setTranslate] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const dragRef = useRef<{ startX: number; startY: number; tx: number; ty: number } | null>(null);
+
+  const clamp = (v: number) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, v));
+
+  const handleFit = useCallback(() => {
+    setUserScale(1);
+    setTranslate({ x: 0, y: 0 });
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    setUserScale((s) => clamp(s + ZOOM_STEP));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setUserScale((s) => clamp(s - ZOOM_STEP));
+  }, []);
+
+  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const el = frame.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    // Cursor position relative to the frame center (where the group is anchored)
+    const cx = e.clientX - rect.left - rect.width / 2;
+    const cy = e.clientY - rect.top - rect.height / 2;
+    setUserScale((prev) => {
+      const next = clamp(prev * (1 - e.deltaY * 0.001));
+      const ratio = next / prev;
+      setTranslate((t) => ({
+        x: cx + (t.x - cx) * ratio,
+        y: cy + (t.y - cy) * ratio,
+      }));
+      return next;
+    });
+  }, []);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    // Only pan on primary button, not on node cards
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-node-id]')) return;
+    dragRef.current = { startX: e.clientX, startY: e.clientY, tx: translate.x, ty: translate.y };
+    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+  }, [translate]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    setTranslate({ x: dragRef.current.tx + dx, y: dragRef.current.ty + dy });
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    dragRef.current = null;
+  }, []);
+
+  const scale = fitScale * userScale;
 
   if (layout.positioned.length === 0) {
     return (
@@ -155,10 +220,18 @@ export function TreeCanvas({ nodes, selectedUserId, onSelect, balances = {}, lat
   }
 
   return (
-    <div ref={frame} className="flex h-full min-h-[520px] w-full items-center justify-center overflow-hidden p-6">
+    <div
+      ref={frame}
+      className="relative flex h-full min-h-[520px] w-full items-center justify-center overflow-hidden p-6"
+      onWheel={handleWheel}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onDoubleClick={handleFit}
+    >
       <div
         className="relative shrink-0"
-        style={{ width: layout.width, height: layout.height, transform: `scale(${scale})`, transformOrigin: 'center' }}
+        style={{ width: layout.width, height: layout.height, transform: `translate(${translate.x}px,${translate.y}px) scale(${scale})`, transformOrigin: 'center' }}
       >
         <TreeEdges
           edges={layout.edges}
@@ -195,6 +268,7 @@ export function TreeCanvas({ nodes, selectedUserId, onSelect, balances = {}, lat
           </div>
         )}
       </div>
+      <ZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onFit={handleFit} />
     </div>
   );
 }
