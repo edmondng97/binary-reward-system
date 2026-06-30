@@ -11,7 +11,7 @@ export function RegisterPanel({ onDone }: { onDone: () => void | Promise<void> }
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setErr('');
     try { await api.register({ ...f, password: 'p' }); await onDone(); }
-    catch (x: any) { setErr(x.message); }
+    catch (x) { setErr(x instanceof Error ? x.message : String(x)); }
   };
   return (
     <Card className="p-4">

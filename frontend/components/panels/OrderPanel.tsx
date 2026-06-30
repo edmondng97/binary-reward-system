@@ -11,7 +11,7 @@ export function OrderPanel({ onSubmit }: { onSubmit: (username: string, amount: 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setErr('');
     try { await onSubmit(username, Number(amount)); }
-    catch (x: any) { setErr(x.message); }
+    catch (x) { setErr(x instanceof Error ? x.message : String(x)); }
   };
   return (
     <Card className="p-4">
