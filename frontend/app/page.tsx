@@ -8,7 +8,7 @@ import { TreeCanvas } from '@/components/tree/TreeCanvas';
 import { ControlDeck } from '@/components/ControlDeck';
 import { WalletPanel } from '@/components/panels/WalletPanel';
 import { flowUpUplinePath } from '@/lib/animations/flowUp';
-import { settlementFlash } from '@/lib/animations/settlementFx';
+import { settlementSequence } from '@/lib/animations/settlementSequence';
 import { nodeEnter } from '@/lib/animations/nodeEnter';
 
 export default function Page() {
@@ -33,11 +33,7 @@ export default function Page() {
       if (!stage.current || !d.lastEvent) return;
       if (d.lastEvent.type === 'order') flowUpUplinePath(stage.current, uplineEdgeKeys(d.lastEvent.nodeId));
       if (d.lastEvent.type === 'register') nodeEnter(stage.current, d.lastEvent.nodeId);
-      if (d.lastEvent.type === 'settlement') {
-        // Flash all nodes with residual carry — a demo approximation of "nodes paired this run".
-        const paired = d.nodes.filter((n) => n.carryLeft > 0 || n.carryRight > 0).map((n) => n.id);
-        settlementFlash(stage.current, paired);
-      }
+      if (d.lastEvent.type === 'settlement') settlementSequence(stage.current, d.latestSettlement?.records ?? []);
     });
   }, { dependencies: [d.lastEvent], scope: stage });
 
@@ -71,6 +67,7 @@ export default function Page() {
           <TreeCanvas
             nodes={d.nodes}
             balances={d.balances}
+            latestSettlement={d.latestSettlement}
             selectedUserId={d.selectedUserId}
             onSelect={(uid) => d.setSelectedUserId(uid ?? null)}
           />

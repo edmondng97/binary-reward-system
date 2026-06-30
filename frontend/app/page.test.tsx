@@ -7,6 +7,7 @@ vi.mock('@/lib/useDashboard', () => ({
     nodes: [{ id: 'root', username: 'root', userId: 'u1', placementId: null, position: null,
       leftChildId: null, rightChildId: null, carryLeft: 0, carryRight: 0 }],
     balances: { u1: 0 },
+    latestSettlement: { batchId: 'b1', triggeredBy: 'manual', totalBonus: 0, endedAt: null, records: [] } satisfies import('@/lib/types').LatestSettlement,
     selectedUserId: null, setSelectedUserId: vi.fn(), lastEvent: null,
     refresh: vi.fn(), createRoot: vi.fn(), register: vi.fn(), order, settle: vi.fn().mockResolvedValue(undefined),
   }),
