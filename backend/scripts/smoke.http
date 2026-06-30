@@ -1,0 +1,38 @@
+### create root
+POST http://localhost:3001/tree/root
+Content-Type: application/json
+
+{ "username": "root", "password": "p" }
+
+### register a under root-L
+POST http://localhost:3001/tree/register
+Content-Type: application/json
+
+{ "username": "a", "password": "p", "sponsorUsername": "root", "placementUsername": "root", "position": "L" }
+
+### register b under root-R
+POST http://localhost:3001/tree/register
+Content-Type: application/json
+
+{ "username": "b", "password": "p", "sponsorUsername": "root", "placementUsername": "root", "position": "R" }
+
+### order on a → +5000 to root.left
+POST http://localhost:3001/orders
+Content-Type: application/json
+
+{ "username": "a", "amount": 5000 }
+
+### order on b → +3500 to root.right
+POST http://localhost:3001/orders
+Content-Type: application/json
+
+{ "username": "b", "amount": 3500 }
+
+### run settlement → root pairs 3500 × 10% = 350 bonus
+POST http://localhost:3001/settlement/run
+
+### check root user wallet (expect walletBalance 350 after worker runs)
+# GET http://localhost:3001/users/<rootUserId>
+
+### check tree carry values (expect root carryLeft 1500, carryRight 0)
+# GET http://localhost:3001/tree
