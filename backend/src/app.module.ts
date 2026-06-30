@@ -4,6 +4,7 @@ import { RedisModule } from './redis/redis.module';
 import { UsersModule } from './users/users.module';
 import { TreeModule } from './tree/tree.module';
 import { OrdersModule } from './orders/orders.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { OrdersModule } from './orders/orders.module';
     UsersModule,
     TreeModule,
     OrdersModule,
+    WalletModule,
   ],
 })
 export class AppModule {}
