@@ -1,30 +1,28 @@
 'use client';
 import type { Edge } from '@/lib/useTreeLayout';
 
-export function TreeEdges({ edges, width, height }: { edges: Edge[]; width: number; height: number }) {
+export function TreeEdges({ edges, width, height, highlightedKeys }:
+  { edges: Edge[]; width: number; height: number; highlightedKeys?: Set<string> }) {
+  const hasHighlight = !!highlightedKeys && highlightedKeys.size > 0;
   return (
-    <svg
-      width={width}
-      height={height}
-      className="pointer-events-none absolute left-0 top-0 overflow-visible"
-    >
-      <defs>
-        <linearGradient id="edge-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(56,225,255,0.45)" />
-          <stop offset="100%" stopColor="rgba(56,225,255,0.10)" />
-        </linearGradient>
-      </defs>
-      {edges.map((e) => (
-        <path
-          key={`${e.fromId}-${e.toId}`}
-          data-edge={`${e.fromId}->${e.toId}`}
-          d={e.d}
-          fill="none"
-          stroke="url(#edge-grad)"
-          strokeWidth={1.5}
-          strokeLinecap="round"
-        />
-      ))}
+    <svg width={width} height={height} className="pointer-events-none absolute left-0 top-0 overflow-visible">
+      {edges.map((e) => {
+        const key = `${e.fromId}->${e.toId}`;
+        const on = !hasHighlight || highlightedKeys!.has(key);
+        const color = e.position === 'L' ? '#38e1ff' : '#5eead4';
+        return (
+          <path
+            key={key}
+            data-edge={key}
+            d={e.d}
+            fill="none"
+            stroke={color}
+            strokeWidth={1 + e.weight * 2.5}
+            strokeLinecap="round"
+            opacity={on ? 0.55 + e.weight * 0.35 : 0.08}
+          />
+        );
+      })}
     </svg>
   );
 }
