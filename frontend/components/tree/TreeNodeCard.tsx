@@ -92,13 +92,16 @@ export function TreeNodeCard({
         <Leg side="R" value={node.carryRight} max={maxLeg} isPair={pairSide === 'R'} />
       </div>
       {hasChildren && (
-        <button
+        <span
           data-collapse
+          role="button"
+          tabIndex={0}
           onClick={(e) => { e.stopPropagation(); onToggleCollapse?.(node.id); }}
-          className="absolute bottom-1.5 right-2 flex h-4 min-w-[1rem] items-center justify-center rounded bg-white/10 px-1 text-[9px] font-semibold text-[#8a95ad] hover:bg-white/20"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onToggleCollapse?.(node.id); } }}
+          className="absolute bottom-1.5 right-2 flex h-4 min-w-[1rem] items-center justify-center rounded bg-white/10 px-1 text-[9px] font-semibold text-[#8a95ad] hover:bg-white/20 cursor-pointer"
         >
           {collapsed && descendantCount != null ? `+${descendantCount}` : '⌃'}
-        </button>
+        </span>
       )}
     </button>
   );

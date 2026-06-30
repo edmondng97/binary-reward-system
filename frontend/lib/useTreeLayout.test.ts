@@ -42,7 +42,7 @@ describe('layoutTree edge encoding', () => {
         leftChildId: null, rightChildId: null, carryLeft: 100, carryRight: 0 },
       { id: 'b', username: 'b', placementId: 'root', position: 'R',
         leftChildId: null, rightChildId: null, carryLeft: 50, carryRight: 0 },
-    ] as any;
+    ] satisfies TreeNodeDTO[];
     const { edges } = layoutTree(nodes);
     const byTo = Object.fromEntries(edges.map((e) => [e.toId, e]));
     expect(byTo.a.position).toBe('L');
