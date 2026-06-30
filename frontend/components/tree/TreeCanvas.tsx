@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { TreeNodeDTO, LatestSettlement } from '@/lib/types';
 import { layoutTree } from '@/lib/useTreeLayout';
 import { TreeEdges } from './TreeEdges';
@@ -169,23 +169,32 @@ export function TreeCanvas({ nodes, selectedUserId, onSelect, balances = {}, lat
     setUserScale((s) => clamp(s - ZOOM_STEP));
   }, []);
 
-  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
-    e.preventDefault();
+  // Attach wheel handler as non-passive native listener so e.preventDefault() is effective
+  // (React 18 registers onWheel as passive, making preventDefault a no-op → scroll-bleed).
+  useEffect(() => {
     const el = frame.current;
     if (!el) return;
-    const rect = el.getBoundingClientRect();
-    // Cursor position relative to the frame center (where the group is anchored)
-    const cx = e.clientX - rect.left - rect.width / 2;
-    const cy = e.clientY - rect.top - rect.height / 2;
-    setUserScale((prev) => {
-      const next = clamp(prev * (1 - e.deltaY * 0.001));
-      const ratio = next / prev;
-      setTranslate((t) => ({
-        x: cx + (t.x - cx) * ratio,
-        y: cy + (t.y - cy) * ratio,
-      }));
-      return next;
-    });
+    const handler = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      // Cursor position relative to the frame center (where the group is anchored)
+      const cx = e.clientX - rect.left - rect.width / 2;
+      const cy = e.clientY - rect.top - rect.height / 2;
+      setUserScale((prev) => {
+        const next = clamp(prev * (1 - e.deltaY * 0.001));
+        const ratio = next / prev;
+        setTranslate((t) => ({
+          x: cx + (t.x - cx) * ratio,
+          y: cy + (t.y - cy) * ratio,
+        }));
+        return next;
+      });
+    };
+    el.addEventListener('wheel', handler, { passive: false });
+    return () => el.removeEventListener('wheel', handler);
+  // clamp is stable (pure fn defined in render); fitScale/userScale/translate are read
+  // via setUserScale/setTranslate functional updaters so no dep re-registration needed.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -223,7 +232,6 @@ export function TreeCanvas({ nodes, selectedUserId, onSelect, balances = {}, lat
     <div
       ref={frame}
       className="relative flex h-full min-h-[520px] w-full items-center justify-center overflow-hidden p-6"
-      onWheel={handleWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
