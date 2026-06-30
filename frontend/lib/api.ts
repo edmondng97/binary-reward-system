@@ -16,4 +16,5 @@ export const api = {
     req('/orders', { method: 'POST', body: JSON.stringify({ username, amount }) }),
   settle: () => req('/settlement/run', { method: 'POST' }),
   ledger: (userId: string) => req(`/wallet/${userId}/ledger`),
+  user: (id: string) => req(`/users/${id}`),
 };
